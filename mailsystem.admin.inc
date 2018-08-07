@@ -53,8 +53,8 @@ function mailsystem_admin_settings() {
   }
   $form['mailsystem']['mailsystem_theme'] = array(
       '#type' => 'select',
-      '#title' => t('Theme to render the emails'),
-      '#description' => t('Select the theme that will be used to render the emails. This can be either the current theme, the default theme, the domain theme or any active theme.'),
+      '#title' => t('Theme to render rich text emails'),
+      '#description' => t('Select the theme that will be used to render rich text emails. This can be either the current theme, the default theme, the domain theme or any active theme.'),
       '#options' => $theme_options,
       '#default_value' => config_get('mailsystem.settings', 'mailsystem_theme'),
   );
@@ -83,7 +83,7 @@ function mailsystem_admin_settings() {
   $form['mailsystem']['custom-settings'] = array(
     '#type' => 'fieldset',
     '#title' => 'Custom settings',
-    '#description' => t('You can set methods for each module that sends out email. For example, you might want to set up a contact form emails differently from event calendar notifications. An identifier can be composed of a module and an optional key. To decide which methods to use, Backdrop goes from the specific to the general. If no specific identifiers are set up then the site-wide default is used. The search order: <ol><li>The methods associated with the module and key, if any.</li><li>The method associated with the module, if any.</li><li>The site-wide defaults.</li></ol> For more technical information see <a href="!default_class"><code>@default_class</code></a> and <a href="!hook_mail"><code>hook_mail</code></a>.', $args),
+    '#description' => t('Optionally set formatting and delivery methods for each module that sends out email, for example, event calendar notifications or contact form emails. Each module that sends out emails sets an identifier, and can further set one or more optional keys for finer-grained email settings. To decide which methods to use, Backdrop goes from the specific to the general. If no specific identifiers are set up then the site-wide default is used. The search order: <ol><li>The methods associated with the module and key, if any.</li><li>The method associated with the module, if any.</li><li>The site-wide defaults.</li></ol> For more technical information see <a href="!default_class"><code>@default_class</code></a> and <a href="!hook_mail"><code>hook_mail</code></a>.', $args),
   );
   foreach ($mail_system as $id => $settings) {
     $form['mailsystem']['custom-settings'][$id] = array(
