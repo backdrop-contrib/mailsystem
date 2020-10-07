@@ -4,6 +4,10 @@
  * @file
  *   Mailsystem module install/schema hooks.
  */
+
+/**
+ * Implements hook_requirements().
+ */
 function mailsystem_requirements($phase) {
   $requirements = array();
   // Ensure translations don't break at install time
@@ -38,6 +42,13 @@ function mailsystem_requirements($phase) {
   return $requirements;
 }
 
+/**
+ * Implements hook_uninstall().
+ */
+function mailsystem_uninstall() {
+  // Set mail system back to the default.
+  config_set('system.mail', 'default-system', 'DefaultMailSystem');
+}
 
 /**
  * Migrate variables from Drupal 7 to Backdrop.
