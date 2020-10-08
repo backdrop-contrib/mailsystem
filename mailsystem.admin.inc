@@ -222,10 +222,16 @@ function mailsystem_admin_settings_submit($form, &$form_state) {
   unset($form_state['values']['mailsystem']['mailsystem_theme']);
   unset($form_state['values']['mailsystem']['add-custom-settings']);
 
-  if (isset($form_state['values']['mailsystem']['custom-settings']) {
-    foreach ($form_state['values']['mailsystem']['custom-settings'] as $id => $values) {
-      mailsystem_admin_save_custom_setting($id, $values);
-    }
+  // Combine the default and the custom settings arrays.
+  $settings = array(
+    mailsystem_default_id() => $form_state['values']['mailsystem'][mailsystem_default_id()]
+  );
+  if (isset($form_state['values']['mailsystem']['custom-settings'])) {
+    $settings += $form_state['values']['mailsystem']['custom-settings'];
+  }
+
+  foreach ($settings as $id => $values) {
+    mailsystem_admin_save_custom_setting($id, $values);
   }
 
   backdrop_set_message(t('Saved Mail System configuration'));

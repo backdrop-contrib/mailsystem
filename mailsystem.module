@@ -10,8 +10,8 @@
  */
 function mailsystem_config_info() {
   $prefixes['mailsystem.settings'] = array(
-    'label' => t('mailsystem settings'),
-    'group' => t('mailsystem'),
+    'label' => t('Mail System settings'),
+    'group' => t('Configuration'),
   );
   return $prefixes;
 }
