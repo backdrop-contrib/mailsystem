@@ -89,10 +89,16 @@ function mailsystem_defaults() {
  * @return The contents of the mail_system variable merged with its defaults.
  */
 function mailsystem_get() {
-  return array_merge(
-    mailsystem_defaults(),
-    config_get('system.mail')
-  );
+  $config_mail = config('system.mail');
+  $config_keys = config_get('system.mail');
+
+  $mail = array();
+  // Need keys in order to merge the config.
+  foreach (array_keys($config_keys) as $key) {
+    $mail[$key] = $config_mail->get($key);
+  }
+
+  return $mail;
 }
 
 /**
@@ -108,11 +114,12 @@ function mailsystem_get() {
  */
 function mailsystem_read_settings() {
   $mail_system = mailsystem_get();
+  $config_mailsystem = config('mailsystem.settings');
 
   $settings = array();
   foreach ($mail_system as $id => $class) {
     if ($class == 'MailsystemDelegateMailSystem') {
-      $settings[$id] = config_get('mailsystem.settings', 'mailsystem_delegate.' . $id);
+      $settings[$id] = $config_mailsystem->get('mailsystem_delegate.' . $id);
     }
     else {
       $settings[$id]['mail'] = $class;
@@ -139,16 +146,19 @@ function mailsystem_read_settings() {
  * @see backdrop_mail()
  */
 function mailsystem_set(array $setting) {
-  $mail_system = mailsystem_get();
+  $config_mailsystem = config('mailsystem.settings');
+  $config_mail = config('system.mail');
   foreach ($setting as $key => $class) {
-    config_clear('mailsystem.settings', 'mailsystem_delegate.' . $key);
     if (is_array($class)) {
       // Save the settings for our delegateer-class into a variable
-      $setting[$key] = mailsystem_delegate_set_mailsystem_settings($key, $class);
+      $config_mailsystem->set('mailsystem_delegate.' . $key, $class);
+      $config_mail->set($key, 'MailsystemDelegateMailSystem');
+    } else {
+      $config_mailsystem->clear('mailsystem_delegate.' . $key);
+      $config_mail->set($key, $class);
     }
   }
-  $config_mail = config('system.mail');
-  $config_mail->setData(array_merge(mailsystem_get(), $setting));
+  $config_mailsystem->save();
   $config_mail->save();
 }
 
@@ -167,35 +177,14 @@ function mailsystem_set(array $setting) {
  *   The name of the class to be removed, if any.
  */
 function mailsystem_clear(array $setting) {
-  $config = config('system.mail');
-  $config->setData(
-    array_merge(
-      mailsystem_defaults(),
-      array_diff_key(array_diff(mailsystem_get(), $setting), $setting)
-    )
-  );
-  $config->save();
+  $config_mail = config('system.mail');
   $config_mailsystem = config('mailsystem.settings');
   foreach (array_keys($setting) as $key) {
-    $config_mailsystem->clear( 'mailsystem_delegate.' . $key);
+    $config_mail->clear($key);
+    $config_mailsystem->clear('mailsystem_delegate.' . $key);
   }
+  $config_mail->save();
   $config_mailsystem->save();
-}
-
-/**
- * Save settings for the delegate mail system for a given mail-id.
- *
- * @param $id is the machine-readable module name optionally followed by '_'
- *       and a key.
- * @param $map An associative array whose keys are the names of methods
- *       defined by MailSystemInterface and whose values are the names of
- *       the class to use for that method.
- *
- * @return A string specifying the name of the delegator class.
- */
-function mailsystem_delegate_set_mailsystem_settings($id, $settings) {
-  config_set('mailsystem.settings', 'mailsystem_delegate.' . $id, $settings);
-  return 'MailsystemDelegateMailSystem';
 }
 
 /**
@@ -220,15 +209,16 @@ function mailsystem_delegate_set_mailsystem_settings($id, $settings) {
 function _mailsystem_delegate_get_mailsystem($module, $key, $action) {
   $instances = &backdrop_static(__FUNCTION__, array());
 
+  $config_mailsystem = config('mailsystem.settings');
   // Try to use custom settings defined for the message's module and key.
-  $settings = config_get('mailsystem.settings', 'mailsystem_delegate.' . $module . '_' . $key);
+  $settings = $config_mailsystem->get('mailsystem_delegate.' . $module . '_' . $key);
   if ($settings === NULL) {
     // Try to use custom settings defined for the message's module.
-    $settings = config_get('mailsystem.settings', 'mailsystem_delegate.' . $module);
+    $settings = $config_mailsystem->get('mailsystem_delegate.' . $module);
   }
   if ($settings === NULL) {
     // Try to use the configured site-wide default mail system settings.
-    $settings = config_get('mailsystem.settings', 'mailsystem_delegate.' . mailsystem_default_id());
+    $settings = $config_mailsystem->get('mailsystem_delegate.' . mailsystem_default_id());
   }
 
   // Use the class configured for the given action.
@@ -236,8 +226,8 @@ function _mailsystem_delegate_get_mailsystem($module, $key, $action) {
     $class = $settings[$action];
   }
   else {
-    $mailsystems = mailsystem_get();
-    $class = $mailsystems[mailsystem_default_id()];
+    $config_mail = config('system.mail');
+    $class = $config_mail->get(mailsystem_default_id());
 
     // Fallback to backdrop default in order to prevent an infinite recursion.
     if ($class == 'MailsystemDelegateMailSystem') {
@@ -377,7 +367,7 @@ function mailsystem_system_info_alter(&$info, $file, $type) {
     $mail_system = mailsystem_get();
     foreach ($mail_system as $key => $class) {
       if ($class == 'MailsystemDelegateMailSystem') {
-        $info['required'] = TRUE;
+        $info['disabled'] = TRUE;
         $info['explanation'] = t('<em>Mail System</em> cannot be disabled until each custom setting on its <a href="@url">configure page</a> is either removed, or uses the same method for both formatting and delivery.', array('@url' => url('admin/config/system/mailsystem')));
       }
     }
