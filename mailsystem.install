@@ -55,8 +55,8 @@ function mailsystem_uninstall() {
  */
 function mailsystem_update_1000() {
   // migrate variables
-  config_set('system.mail', 'default-system', update_variable_get('mail_system'), 'DefaultMailSystem');
-  config_set('mailsystem.settings', 'mailsystem_theme', update_variable_get('mailsystem_theme'), 'current');
+  config_set('system.mail', 'default-system', update_variable_get('mail_system', 'DefaultMailSystem'));
+  config_set('mailsystem.settings', 'mailsystem_theme', update_variable_get('mailsystem_theme', 'current'));
 
   // Delete variables.
   update_variable_del('mail_system');
