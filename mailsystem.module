@@ -248,7 +248,7 @@ function _mailsystem_delegate_get_mailsystem($module, $key, $action) {
 }
 
 /**
- * Retreives a list of all available instances of MailSystemInterface
+ * Retrieves a list of all available instances of MailSystemInterface
  *
  * @return array
  *   Array of mailsystem definitions keyed by the module.
@@ -295,7 +295,7 @@ function mailsystem_get_classes() {
     foreach ($mailsystems_from_hook as $hook) {
       foreach ($hook as $classname => $classinfo) {
         $mailsystem_classes['labels'][$classname] = $classinfo['label'];
-        $mailsystem_classes['descriptions'][$classinfo['label']] = $classinfo['description'];
+        $mailsystem_classes['descriptions'][$classname] = $classinfo['description'];
       }
     }
 
@@ -320,8 +320,8 @@ function mailsystem_get_classes() {
               if (!isset($mailsystem_classes['labels'][$classname])) {
                 $mailsystem_classes['labels'][$classname] = $mailsystem_class_info[$classname]['label'];
               }
-              if (!isset($mailsystem_classes['descriptions'][$mailsystem_class_info[$classname]['label']])) {
-                $mailsystem_classes['descriptions'][$mailsystem_class_info[$classname]['label']] = $mailsystem_class_info[$classname]['description'];
+              if (!isset($mailsystem_classes['descriptions'][$classname])) {
+                $mailsystem_classes['descriptions'][$classname] = $mailsystem_class_info[$classname]['description'];
               }
             }
           }

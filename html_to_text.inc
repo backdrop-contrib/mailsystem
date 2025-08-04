@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Copy of `backdrop_html_to_text()` improvements from issue drupal.org/node/299138.
+ * Copy of backdrop_html_to_text() improvements from issue drupal.org/node/299138.
  */
 
 /**
