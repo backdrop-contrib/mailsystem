@@ -248,6 +248,41 @@ function _mailsystem_delegate_get_mailsystem($module, $key, $action) {
 }
 
 /**
+ * Retrieves a list of all available instances of MailSystemInterface
+ *
+ * @return array
+ *   Array of mailsystem definitions keyed by the module.
+ */
+function mailsystem_get_mailsystems() {
+  $mailsystems = &backdrop_static(__FUNCTION__);
+  if (!isset($mailsystems)) {
+    $mailsystems = array();
+    foreach (module_implements('mailsystem_info') as $module) {
+      $mailsystems[$module] = module_invoke($module, 'mailsystem_info');
+    }
+  }
+  return $mailsystems;
+}
+
+/**
+ * Implements hook_mailsystem_info().
+ */
+function mailsystem_mailsystem_info() {
+  return array(
+    'default' => array(
+      'label' => 'Default',
+      'description' => t('The default Backdrop mail backend using PHP\'s mail function.'),
+      'class' => 'DefaultMailSystem',
+    ),
+    'testing' => array(
+      'label' => t('Testing'),
+      'description' => t('A mail sending implementation that captures sent messages to a variable.'),
+      'class' => 'TestingMailSystem',
+    ),
+  );
+}
+
+/**
  * Returns a list of classes which implement MailSystemInterface.
  *
  * This method assumes that all classes which implement MailSystemInterface
@@ -256,31 +291,46 @@ function _mailsystem_delegate_get_mailsystem($module, $key, $action) {
 function mailsystem_get_classes() {
   $mailsystem_classes = &backdrop_static(__FUNCTION__);
   if (!isset($mailsystem_classes)) {
+    $mailsystem_classes = array();
+    // Get the definitions from the hook implementations.
+    foreach (mailsystem_get_mailsystems() as $hook) {
+      foreach ($hook as $classinfo) {
+        $mailsystem_classes['labels'][$classinfo['class']] = $classinfo['label'];
+        $mailsystem_classes['descriptions'][$classinfo['class']] = $classinfo['description'];
+      }
+    }
+
+    // Fallback to attempting to build the definitions from modules that
+    // have classes that implements MailSystemInterface.
     foreach (module_implements('autoload_info') as $module) {
       $function = $module . '_autoload_info';
-      if ($module) {
-        $modulepath = BACKDROP_ROOT . '/' . backdrop_get_path('module', $module);
+      if ($module == 'system') {
+        // Use the hook for system so can skip that here.
+        continue;
       }
+      $modulepath = BACKDROP_ROOT . '/' . backdrop_get_path('module', $module);
       $implements = $function();
       foreach ($implements as $classname => $path) {
         if (!strpos($classname, 'Delegate')
           && (strpos($classname, 'MailSystem') || strpos($path, '.mail.'))) {
-          $mail_classes[$classname] = $modulepath . '/' . $path;
           $mailsystem_class_info[$classname] = mailsystem_get_class_info($classname, $module);
+
+          if (file_exists($modulepath . '/' . $path)) {
+            $interfaces = class_implements($classname);
+            if (isset($interfaces['MailSystemInterface'])) {
+              if (!isset($mailsystem_classes['labels'][$classname])) {
+                $mailsystem_classes['labels'][$classname] = $mailsystem_class_info[$classname]['label'];
+                watchdog('mailsystem', 'The class %classname should be defined in <code>hook_mailsystem_info</code> to avoid the MailSystem module from needing to guess the purpose of the class.', array('%classname' => $classname), WATCHDOG_DEPRECATED);
+              }
+              if (!isset($mailsystem_classes['descriptions'][$classname])) {
+                $mailsystem_classes['descriptions'][$classname] = $mailsystem_class_info[$classname]['description'];
+              }
+            }
+          }
         }
       }
     }
 
-    $mailsystem_classes = array();
-    foreach ($mail_classes as $classname => $classfile) {
-      if (file_exists($classfile)) {
-        $interfaces = class_implements($classname);
-        if (isset($interfaces['MailSystemInterface'])) {
-          $mailsystem_classes['labels'][$classname] = $mailsystem_class_info[$classname]['label'];
-          $mailsystem_classes['descriptions'][$mailsystem_class_info[$classname]['label']] = $mailsystem_class_info[$classname]['description'];
-        }
-      }
-    }
     asort($mailsystem_classes['labels']);
     ksort($mailsystem_classes['descriptions']);
   }
@@ -342,17 +392,6 @@ function mailsystem_get_class_info($classname, $module) {
     'label' => $module_info['name'],
     'description' => t($module_info['description']),
   );
-  // For most modules there's only one class that implements
-  // MailsystemInterface. For System module we need to manually set the
-  // label and description since there are two classes.
-  if ($classname == 'DefaultMailSystem') {
-    $mail_class_info['label'] = 'Default';
-    $mail_class_info['description'] = t('The default Backdrop mail backend using PHP\'s mail function.');
-  }
-  if ($classname == 'TestingMailSystem') {
-    $mail_class_info['label'] = 'Testing';
-    $mail_class_info['description'] = t('A mail sending implementation that captures sent messages to a variable.');
-  }
   return $mail_class_info;
 }
 

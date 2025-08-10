@@ -28,15 +28,17 @@ function mailsystem_admin_settings() {
     '#collapsible' => FALSE,
     '#tree' => TRUE,
   );
-  $module_info = '<ul>';
-  foreach ($delivery_classes['descriptions'] as $module => $description) {
-    $module_info .= '<li><strong>' . $module . '</strong>: ';
-    $module_info .= $description . '</li>';
+  $class_info = '<ul>';
+  // @todo This would be unique since it used module name before, but now it's
+  // using a label so should make that a bit unique.
+  foreach ($delivery_classes['descriptions'] as $classname => $description) {
+    $class_info .= '<li><strong>' . $delivery_classes['labels'][$classname] . '</strong>: ';
+    $class_info .= $description . '</li>';
   }
-  $module_info .= '</ul>';
+  $class_info .= '</ul>';
   $form['mailsystem']['modules'] = array(
     '#type' => 'help',
-    '#markup' => t('You can choose from any of the following enabled modules which implement email functionality:') . $module_info,
+    '#markup' => t('You can choose from any of the following enabled modules which implement email functionality:') . $class_info,
   );
 
   // Generate a list of themes which may used to render emails.
