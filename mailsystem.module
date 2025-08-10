@@ -269,13 +269,15 @@ function mailsystem_get_mailsystems() {
  */
 function mailsystem_mailsystem_info() {
   return array(
-    'DefaultMailSystem' => array(
+    'default' => array(
       'label' => 'Default',
       'description' => t('The default Backdrop mail backend using PHP\'s mail function.'),
+      'class' => 'DefaultMailSystem',
     ),
-    'TestingMailSystem' => array(
+    'testing' => array(
       'label' => t('Testing'),
       'description' => t('A mail sending implementation that captures sent messages to a variable.'),
+      'class' => 'TestingMailSystem',
     ),
   );
 }
@@ -288,14 +290,13 @@ function mailsystem_mailsystem_info() {
  */
 function mailsystem_get_classes() {
   $mailsystem_classes = &backdrop_static(__FUNCTION__);
-  $mailsystems_from_hook = mailsystem_get_mailsystems();
   if (!isset($mailsystem_classes)) {
     $mailsystem_classes = array();
     // Get the definitions from the hook implementations.
-    foreach ($mailsystems_from_hook as $hook) {
-      foreach ($hook as $classname => $classinfo) {
-        $mailsystem_classes['labels'][$classname] = $classinfo['label'];
-        $mailsystem_classes['descriptions'][$classname] = $classinfo['description'];
+    foreach (mailsystem_get_mailsystems() as $hook) {
+      foreach ($hook as $classinfo) {
+        $mailsystem_classes['labels'][$classinfo['class']] = $classinfo['label'];
+        $mailsystem_classes['descriptions'][$classinfo['class']] = $classinfo['description'];
       }
     }
 
@@ -319,6 +320,7 @@ function mailsystem_get_classes() {
             if (isset($interfaces['MailSystemInterface'])) {
               if (!isset($mailsystem_classes['labels'][$classname])) {
                 $mailsystem_classes['labels'][$classname] = $mailsystem_class_info[$classname]['label'];
+                watchdog('mailsystem', 'The class %classname should be defined in <code>hook_mailsystem_info</code> to avoid the MailSystem module from needing to guess the purpose of the class.', array('%classname' => $classname), WATCHDOG_DEPRECATED);
               }
               if (!isset($mailsystem_classes['descriptions'][$classname])) {
                 $mailsystem_classes['descriptions'][$classname] = $mailsystem_class_info[$classname]['description'];

@@ -17,13 +17,16 @@
  *   by the class name.
  */
 function hook_mailsystem_info() {
-  $classes['DefaultMailSystem'] = array(
-    'label' => 'Default',
-    'description' => t('The default Backdrop mail backend using PHP\'s mail function.'),
+  return array(
+    'default' => array(
+      'label' => 'Default',
+      'description' => t('The default Backdrop mail backend using PHP\'s mail function.'),
+      'class' => 'DefaultMailSystem',
+    ),
+    'testing' => array(
+      'label' => t('Testing'),
+      'description' => t('A mail sending implementation that captures sent messages to a variable.'),
+      'class' => 'TestingMailSystem',
+    ),
   );
-  $classes['TestingMailSystem'] = array(
-    'label' => t('Testing'),
-    'description' => t('A mail sending implementation that captures sent messages to a variable.'),
-  );
-  return $classes;
 }
