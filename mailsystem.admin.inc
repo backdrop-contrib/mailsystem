@@ -56,7 +56,7 @@ function mailsystem_admin_settings() {
       '#title' => t('Theme to render rich text emails'),
       '#description' => t('Select the theme that will be used to render rich text emails. This can be either the current theme, the default theme, the domain theme or any active theme.'),
       '#options' => $theme_options,
-      '#default_value' => config_get('mailsystem.settings', 'mailsystem_theme'),
+      '#default_value' => config_get('system.mail', 'mail_theme'),
   );
 
   $form['mailsystem'][mailsystem_default_id()] = array(

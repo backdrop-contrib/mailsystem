@@ -47,7 +47,7 @@ function mailsystem_requirements($phase) {
  */
 function mailsystem_uninstall() {
   // Set mail system back to the default.
-  config_set('system.mail', 'default-system', 'DefaultMailSystem');
+  // config_set('system.mail', 'default-system', 'DefaultMailSystem');
 }
 
 /**
@@ -61,4 +61,25 @@ function mailsystem_update_1000() {
   // Delete variables.
   update_variable_del('mail_system');
   update_variable_del('mailsystem_theme');
+}
+
+/**
+ * Use core functionality if available.
+ */
+function mailsystem_update_1001() {
+  $config_mail = config('system.mail');
+  if ($config_mail->get('mail_system') !== NULL) {
+    // Core is set to use the new mail system functionality so use that here
+    // too.
+    $config_mailsystem = config('mailsystem.settings');
+    $config_mail->set('mail_theme', $config_mailsystem->get('mailsystem_theme'));
+    $data = $config_mailsystem->get('mailsystem_delegate');
+    foreach($data as $key => $value) {
+      $config_mail->set('mail_system.' . $key, $value);
+      $config_mail->clear($key);
+    }
+
+    $config_mail->save();
+    $config_mailsystem->delete();
+  }
 }

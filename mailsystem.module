@@ -6,26 +6,6 @@
  */
 
 /**
- * Implements hook_config_info().
- */
-function mailsystem_config_info() {
-  $prefixes['mailsystem.settings'] = array(
-    'label' => t('Mail System settings'),
-    'group' => t('Configuration'),
-  );
-  return $prefixes;
-}
-
-/**
- * Implements hook_autoload_info().
- */
-function mailsystem_autoload_info() {
-  return array(
-    'MailsystemDelegateMailSystem' => 'MailsystemDelegateMailSystem.inc',
-  );
-}
-
-/**
  * Implements hook_permission().
  *
  * Defines a permission for managing the mail_system variable.
@@ -114,12 +94,12 @@ function mailsystem_get() {
  */
 function mailsystem_read_settings() {
   $mail_system = mailsystem_get();
-  $config_mailsystem = config('mailsystem.settings');
+  $config_mailsystem = config('system.mail');
 
   $settings = array();
   foreach ($mail_system as $id => $class) {
     if ($class == 'MailsystemDelegateMailSystem') {
-      $settings[$id] = $config_mailsystem->get('mailsystem_delegate.' . $id);
+      $settings[$id] = $config_mailsystem->get('mail_system.' . $id);
     }
     else {
       $settings[$id]['mail'] = $class;
@@ -146,19 +126,15 @@ function mailsystem_read_settings() {
  * @see backdrop_mail()
  */
 function mailsystem_set(array $setting) {
-  $config_mailsystem = config('mailsystem.settings');
   $config_mail = config('system.mail');
   foreach ($setting as $key => $class) {
     if (is_array($class)) {
       // Save the settings for our delegateer-class into a variable
-      $config_mailsystem->set('mailsystem_delegate.' . $key, $class);
-      $config_mail->set($key, 'MailsystemDelegateMailSystem');
+      $config_mail->set('mail_system.' . $key, $class);
     } else {
-      $config_mailsystem->clear('mailsystem_delegate.' . $key);
-      $config_mail->set($key, $class);
+      $config_mail->clear('mail_system.' . $key);
     }
   }
-  $config_mailsystem->save();
   $config_mail->save();
 }
 

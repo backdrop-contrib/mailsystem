@@ -13,9 +13,14 @@ Other email modules that make use of Backdrop's mailing system include:
 + smtp
 + views send
 
+## Update
+
+The functionality in this module is now in core. So if no other modules depend
+on this, it can safely be uninstalled.
+
 ## Installation
 
-- Install this module using the official Backdrop CMS instructions at
++ Install this module using the official Backdrop CMS instructions at
   https://backdropcms.org/guide/modules.
 
 ## Configuration
@@ -29,8 +34,8 @@ file in this directory for complete text.
 
 ## Current Maintainers
 
-* Graham Oliver (https://github.com/Graham-72/)
-* Herb v/d Dool (https://github.com/herbdool)
++ Graham Oliver (https://github.com/Graham-72/)
++ Herb v/d Dool (https://github.com/herbdool)
 
 ## Credits
 
@@ -39,7 +44,7 @@ file in this directory for complete text.
 + Graham Oliver (github.com/Graham-72)
 + Andy Martha (github.com/biolithic)
 
-### Maintainers for Drupal:
+### Maintainers for Drupal
 
 + Sascha Grossenbacher (Berdir)
 + Nik Alexandrov (Nafes)
